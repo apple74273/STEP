@@ -8,7 +8,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 
-public class Main {
+public class Homework1 {
 	List<Pair> dictionary = new ArrayList<Pair>();
     public static void main(String[] args) {
     	Homework1 homework1 = new Homework1();

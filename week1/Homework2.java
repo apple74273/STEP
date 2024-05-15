@@ -74,7 +74,7 @@ public class Homework2 {
     }
     
     String findWord(String target) {
-    	//与えられたアナグラムで作れる単語を返す (複数ある場合は最もスコアが高い物を返す)
+    	//与えられたアナグラムで作れる単語を返す (複数ある場合は最もスコアが高い物 (=最初にヒットした単語) を返す)
     	
     	
     	int[] targetAlphabet = new int[26];
@@ -121,7 +121,7 @@ public class Homework2 {
 }
 
 class Pair{
-	//単語と、その単語を構成するアルファベットを持つクラス
+	//単語と、その単語を構成するアルファベットと、その単語のスコアを持つクラス
 	String word;
 	int[] alphabet;
 	int score;

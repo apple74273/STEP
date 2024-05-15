@@ -10,6 +10,7 @@ import java.util.Scanner;
 
 public class Homework1 {
 	List<Pair> dictionary = new ArrayList<Pair>();
+	String  filePath = "./"; //Eclipse実行時はプロジェクトファイルからのパスに変更
     public static void main(String[] args) {
     	Homework1 homework1 = new Homework1();
     	homework1.solve();
@@ -34,7 +35,7 @@ public class Homework1 {
     	char[] targetAlphabet = target.toCharArray();
     	Arrays.sort(targetAlphabet);
     	String sortedTarget = new String (targetAlphabet);
-    	Pair targetPair = new Pair (sortedTarget, sortedTarget);
+    	Pair targetPair = new Pair (target, sortedTarget);
     	int index = ~Collections.binarySearch(dictionary, targetPair, (a, b) -> a.sortedWord.compareTo(b.sortedWord) >= 0 ? 1 : -1);
     	
     	int answerCount = 0;
@@ -54,7 +55,7 @@ public class Homework1 {
     void createDictionary() {
     	//辞書の作成
     	try {
-    		Path path = Paths.get("C:\\Users\\na742\\eclipse-workspace\\atcoderJava\\src\\atcoderJava\\words.txt");
+    		Path path = Paths.get(filePath+"words.txt");
 			List<String> lines = Files.readAllLines(path);
 			
 			for (String word: lines) {

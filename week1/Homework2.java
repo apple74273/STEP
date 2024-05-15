@@ -7,7 +7,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 
 public class Homework2 {
 	
@@ -76,9 +75,8 @@ public class Homework2 {
     
     String findWord(String target) {
     	//与えられたアナグラムで作れる単語を返す (複数ある場合は最もスコアが高い物を返す)
-    	int[] scoreList = {1, 3, 2, 2, 1, 3, 3, 1, 1, 4, 4, 2, 2, 1, 1, 3, 4, 1, 1, 1, 2, 3, 3, 4, 3, 4};
     	
-    	Scanner sc = new Scanner (System.in);
+    	
     	int[] targetAlphabet = new int[26];
     	
     	for (int i=0; i<target.length(); i++) {
@@ -86,34 +84,22 @@ public class Homework2 {
     		targetAlphabet[(int)(a-'a')]++;
     	}
     	
-    	int maxScore = 0;
-    	String maxWord = null;
     	for (int i=0; i<dictionary.size(); i++) {
     		Pair pair = dictionary.get(i);
     		int[] alphabet = pair.alphabet;
     		
-    		boolean flag = true;
+    		boolean found = true;
     		for (int j=0; j<26; j++) {
     			if (alphabet[j]>targetAlphabet[j]) {
-    				flag = false;
+    				found = false;
     			}
     		}
     		
-    		if (flag) {
-    			String word = pair.word;
-    			int score = 0;
-    			for (int j=0; j<word.length(); j++) {
-    				char a = word.charAt(j);
-    				score += scoreList[(int)(a-'a')];
-    			}
-    			if (score>maxScore) {
-    				maxScore = score;
-    				maxWord = word;
-    			}
+    		if (found) {
+    			return pair.word;
     		}
     	}
-    	sc.close();
-    	return maxWord;
+    	return null;
     }
     
     void createDictionary() {
@@ -126,6 +112,8 @@ public class Homework2 {
 				Pair pair = new Pair (word);
 				dictionary.add(pair);
 			}
+			
+			dictionary.sort((a,b)-> b.score - a.score);
     	} catch(IOException ioex) {
 			ioex.printStackTrace();
 		}
@@ -136,13 +124,20 @@ class Pair{
 	//単語と、その単語を構成するアルファベットを持つクラス
 	String word;
 	int[] alphabet;
-	
+	int score;
+	int[] scoreList = {1, 3, 2, 2, 1, 3, 3, 1, 1, 4, 4, 2, 2, 1, 1, 3, 4, 1, 1, 1, 2, 3, 3, 4, 3, 4};
 	public Pair(String word) {
 		this.word = word;
 		this.alphabet = new int[26];
 		for (int i=0; i<word.length(); i++) {
 			char a = word.charAt(i);
 			this.alphabet[(int)(a-'a')]++;
+		}
+		
+		this.score = 0;
+		for (int j=0; j<word.length(); j++) {
+			char a = word.charAt(j);
+			this.score += this.scoreList[(int)(a-'a')];
 		}
 	}
 }

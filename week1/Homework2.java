@@ -16,7 +16,7 @@ public class Homework2 {
     public static void main(String[] args) {
 
     	//辞書の長さ (N) は84903
-    	//単語の長さは (M) 17-37文字 → 2^Mがすごく大きくなる
+    	//単語の長さは (M) 17-37文字 → 2^Mがすごく大きくなるね
     	
     	Homework2 homework2 = new Homework2();
     	homework2.solve();

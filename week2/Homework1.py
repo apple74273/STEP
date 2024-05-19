@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[47]:
+# In[15]:
 
 
 import random, sys, time
@@ -16,7 +16,7 @@ import random, sys, time
 ###########################################################################
 
 
-# In[48]:
+# In[16]:
 
 
 # Hash function.
@@ -26,13 +26,17 @@ import random, sys, time
 def calculate_hash(key):
     assert type(key) == str
     # Note: This is not a good hash function. Do you see why?
+    # Answer: changed hash function so that it implements the "order" of the alphabet within the word itself
+    # The value added to the hash function will be bigger as we go from left to right
     hash = 0
+    count = 1
     for i in key:
-        hash += ord(i)
+        hash += ord(i)*count
+        count *= 2
     return hash
 
 
-# In[49]:
+# In[17]:
 
 
 # An item object that represents one key - value pair in the hash table.
@@ -48,7 +52,7 @@ class Item:
         self.next = next
 
 
-# In[50]:
+# In[18]:
 
 
 # The main data structure of the hash table that stores key - value pairs.
@@ -78,16 +82,24 @@ class HashTable:
     def put(self, key, value):
         assert type(key) == str
         self.check_size() # Note: Don't remove this code.
+        # find the place to put the input data
         bucket_index = calculate_hash(key) % self.bucket_size
         item = self.buckets[bucket_index]
         while item:
+            # if the hash table already has an item with the same key, it will return False
             if item.key == key:
                 item.value = value
                 return False
             item = item.next
+        # adding the new item at the front of the list
         new_item = Item(key, value, self.buckets[bucket_index])
         self.buckets[bucket_index] = new_item
         self.item_count += 1
+        
+        # Checking the size of the hash table; if it becomes too small, it will rehash the content to a larger hash table
+        if (self.item_count >= self.bucket_size * 0.7):
+            new_bucket_size = self.bucket_size*2+1
+            self.rehash(new_bucket_size)
         return True
 
     # Get an item from the hash table.
@@ -98,14 +110,37 @@ class HashTable:
     def get(self, key):
         assert type(key) == str
         self.check_size() # Note: Don't remove this code.
+        # calculating the place containing the key
         bucket_index = calculate_hash(key) % self.bucket_size
         item = self.buckets[bucket_index]
+        
+        # going down the list until it finds the item with the target key
         while item:
             if item.key == key:
                 return (item.value, True)
             item = item.next
+            
+        # coming here indicates that the target key was not found; it will return False
         return (None, False)
-
+    
+    def rehash(self, new_bucket_size):
+        # creating an array with new bucket size
+        new_buckets = [None] * new_bucket_size
+        
+        # calculating new hash values to each entry and adding to the new hash table
+        for i in range (self.bucket_size):
+            item = self.buckets[i]
+            
+            while item!=None:
+                new_bucket_index = calculate_hash(item.key) % new_bucket_size
+                new_item = Item(item.key, item.value, new_buckets[new_bucket_index])
+                new_buckets[new_bucket_index] = new_item
+                item = item.next
+        
+        # updating hash table and its size
+        self.buckets = new_buckets
+        self.bucket_size = new_bucket_size
+    
     # Delete an item from the hash table.
     #
     # |key|: The key.
@@ -113,10 +148,14 @@ class HashTable:
     #               otherwise.
     def delete(self, key):
         assert type(key) == str
-        bucket_index = calculate_hash(key) % self.bucket_size
-        item = self.buckets[bucket_index]
-        prev_item = None
         delete_successfully = False
+        
+        # calculating the place containing the target key
+        bucket_index = calculate_hash(key) % self.bucket_size
+        
+        # going down the list until it finds an entry with the target key
+        prev_item = None
+        item = self.buckets[bucket_index]
         while item:
             if item.key == key:
                 if prev_item == None:
@@ -128,6 +167,13 @@ class HashTable:
                 break
             prev_item = item
             item = item.next
+        
+        # Checking the size of the hash table; if it becomes too large, it will rehash the content to a smaller hash table
+        if (self.item_count <= self.bucket_size * 0.3 and self.item_count >= 100):
+            new_bucket_size = int(self.bucket_size/2)
+            if new_bucket_size%2 == 0:
+                new_bucket_size += 1
+            self.rehash(new_bucket_size)
         
         return delete_successfully
 
@@ -145,7 +191,7 @@ class HashTable:
                 self.item_count >= self.bucket_size * 0.3)
 
 
-# In[51]:
+# In[19]:
 
 
 # Test the functional behavior of the hash table.
@@ -205,7 +251,6 @@ def functional_test():
     assert hash_table.size() == 6
 
     assert hash_table.delete("abc") == True
-    #from IPython.core.debugger import Pdb; Pdb().set_trace()
     assert hash_table.delete("cba") == True
     assert hash_table.delete("bac") == True
     assert hash_table.delete("bca") == True
@@ -215,7 +260,7 @@ def functional_test():
     print("Functional tests passed!")
 
 
-# In[52]:
+# In[20]:
 
 
 # Test the performance of the hash table.
@@ -252,28 +297,10 @@ def performance_test():
     print("Performance tests passed!")
 
 
-# In[ ]:
+# In[21]:
 
 
 if __name__ == "__main__":
     functional_test()
     performance_test()
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[15]:
+# In[1]:
 
 
 import random, sys, time
@@ -16,7 +16,7 @@ import random, sys, time
 ###########################################################################
 
 
-# In[16]:
+# In[2]:
 
 
 # Hash function.
@@ -36,7 +36,7 @@ def calculate_hash(key):
     return hash
 
 
-# In[17]:
+# In[3]:
 
 
 # An item object that represents one key - value pair in the hash table.
@@ -52,7 +52,7 @@ class Item:
         self.next = next
 
 
-# In[18]:
+# In[4]:
 
 
 # The main data structure of the hash table that stores key - value pairs.
@@ -191,7 +191,7 @@ class HashTable:
                 self.item_count >= self.bucket_size * 0.3)
 
 
-# In[19]:
+# In[5]:
 
 
 # Test the functional behavior of the hash table.
@@ -260,7 +260,7 @@ def functional_test():
     print("Functional tests passed!")
 
 
-# In[20]:
+# In[6]:
 
 
 # Test the performance of the hash table.
@@ -297,7 +297,7 @@ def performance_test():
     print("Performance tests passed!")
 
 
-# In[21]:
+# In[7]:
 
 
 if __name__ == "__main__":

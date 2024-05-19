@@ -4,16 +4,7 @@
 # In[1]:
 
 
-import random, sys, time
-
-###########################################################################
-#                                                                         #
-# Implement a hash table from scratch! (⑅•ᴗ•⑅)                            #
-#                                                                         #
-# Please do not use Python's dictionary or Python's collections library.  #
-# The goal is to implement the data structure yourself.                   #
-#                                                                         #
-###########################################################################
+import sys
 
 
 # In[2]:
@@ -26,8 +17,6 @@ import random, sys, time
 def calculate_hash(key):
     assert type(key) == str
     # Note: This is not a good hash function. Do you see why?
-    # Answer: changed hash function so that it implements the "order" of the alphabet within the word itself
-    # The value added to the hash function will be bigger as we go from left to right
     hash = 0
     count = 1
     for i in key:
@@ -150,6 +139,9 @@ class HashTable:
     # Return value: True if the item is found and deleted successfully. False
     #               otherwise.
     def delete(self, key):
+        if key == None:
+            return delete_successfully
+        
         assert type(key) == str
         delete_successfully = False
         
@@ -197,113 +189,160 @@ class HashTable:
 # In[5]:
 
 
-# Test the functional behavior of the hash table.
-def functional_test():
-    hash_table = HashTable()
+# Implement a data structure that stores the most recently accessed N pages.
+# See the below test cases to see how it should work.
+#
+# Note: Please do not use a library like collections.OrderedDict). The goal is
+#       to implement the data structure yourself!
 
-    assert hash_table.put("aaa", 1) == True
-    assert hash_table.get("aaa") == (1, True)
-    assert hash_table.size() == 1
+class Cache:
+    # Initialize the cache.
+    # |n|: The size of the cache.
+    # index: the index of the access_list that contains the oldest entry
+    # access_list = [(least recently accessed) <-- --> (most recently accessed)]
+    def __init__(self, n):
+        self.hash_table = HashTable()
+        self.index = 0
+        self.access_list = [None for _ in range (n)]
+        self.cache_size = n
 
-    assert hash_table.put("bbb", 2) == True
-    assert hash_table.put("ccc", 3) == True
-    assert hash_table.put("ddd", 4) == True
-    assert hash_table.get("aaa") == (1, True)
-    assert hash_table.get("bbb") == (2, True)
-    assert hash_table.get("ccc") == (3, True)
-    assert hash_table.get("ddd") == (4, True)
-    assert hash_table.get("a") == (None, False)
-    assert hash_table.get("aa") == (None, False)
-    assert hash_table.get("aaaa") == (None, False)
-    assert hash_table.size() == 4
+    # Access a page and update the cache so that it stores the most recently
+    # accessed N pages. This needs to be done with mostly O(1).
+    # |url|: The accessed URL
+    # |contents|: The contents of the URL
+    def access_page(self, url, contents):
+        # get the entry from the hash table
+        (contents, result) = self.hash_table.get(url)
+        
+        # The variable result shows whether it can find the entry with the target key (True = found)
+        if result:
+            # update the order of access_list
+            target_index = self.index
+            store_url = self.access_list[target_index]
+            self.access_list[target_index] = url
+            target_index += 1
+            target_index %= self.cache_size
+            while store_url != url:
+                temp_url = self.access_list[target_index]
+                self.access_list[target_index]=store_url
+                store_url = temp_url
+                target_index += 1
+        else:
+            # delete the least recently accessed page and add the new page accessed right now
+            delete_key = self.access_list[self.index]
+            if (delete_key != None):
+                self.hash_table.delete(delete_key)
+            self.access_list[self.index] = url
+            self.hash_table.put(url, contents)
+        
+        # update the index
+        self.index += 1
+        self.index %= self.cache_size
 
-    assert hash_table.put("aaa", 11) == False
-    assert hash_table.get("aaa") == (11, True)
-    assert hash_table.size() == 4
-
-    assert hash_table.delete("aaa") == True
-    assert hash_table.get("aaa") == (None, False)
-    assert hash_table.size() == 3
-
-    assert hash_table.delete("a") == False
-    assert hash_table.delete("aa") == False
-    assert hash_table.delete("aaa") == False
-    assert hash_table.delete("aaaa") == False
-
-    assert hash_table.delete("ddd") == True
-    assert hash_table.delete("ccc") == True
-    assert hash_table.delete("bbb") == True
-    assert hash_table.get("aaa") == (None, False)
-    assert hash_table.get("bbb") == (None, False)
-    assert hash_table.get("ccc") == (None, False)
-    assert hash_table.get("ddd") == (None, False)
-    assert hash_table.size() == 0
-
-    assert hash_table.put("abc", 1) == True
-    assert hash_table.put("acb", 2) == True
-    assert hash_table.put("bac", 3) == True
-    assert hash_table.put("bca", 4) == True
-    assert hash_table.put("cab", 5) == True
-    assert hash_table.put("cba", 6) == True
-    assert hash_table.get("abc") == (1, True)
-    assert hash_table.get("acb") == (2, True)
-    assert hash_table.get("bac") == (3, True)
-    assert hash_table.get("bca") == (4, True)
-    assert hash_table.get("cab") == (5, True)
-    assert hash_table.get("cba") == (6, True)
-    assert hash_table.size() == 6
-
-    assert hash_table.delete("abc") == True
-    assert hash_table.delete("cba") == True
-    assert hash_table.delete("bac") == True
-    assert hash_table.delete("bca") == True
-    assert hash_table.delete("acb") == True
-    assert hash_table.delete("cab") == True
-    assert hash_table.size() == 0
-    print("Functional tests passed!")
+    # Return the URLs stored in the cache. The URLs are ordered in the order
+    # in which the URLs are mostly recently accessed.
+    def get_pages(self):
+        ans_list = []
+        
+        # Reverse the order of the access_list as well as ignoring the entry of None
+        for i in reversed(range(self.cache_size)):
+            target_index = (i+self.index+self.cache_size)%self.cache_size
+            if self.access_list[target_index] == None:
+                continue
+            ans_list.append(self.access_list[target_index])
+        return ans_list 
 
 
 # In[6]:
 
 
-# Test the performance of the hash table.
-#
-# Your goal is to make the hash table work with mostly O(1).
-# If the hash table works with mostly O(1), the execution time of each iteration
-# should not depend on the number of items in the hash table. To achieve the
-# goal, you will need to 1) implement rehashing (Hint: expand / shrink the hash
-# table when the number of items in the hash table hits some threshold) and
-# 2) tweak the hash function (Hint: think about ways to reduce hash conflicts).
-def performance_test():
-    hash_table = HashTable()
+def cache_test():
+    # Set the size of the cache to 4.
+    cache = Cache(4)
 
-    for iteration in range(100):
-        begin = time.time()
-        random.seed(iteration)
-        for i in range(10000):
-            rand = random.randint(0, 100000000)
-            hash_table.put(str(rand), str(rand))
-        random.seed(iteration)
-        for i in range(10000):
-            rand = random.randint(0, 100000000)
-            hash_table.get(str(rand))
-        end = time.time()
-        print("%d %.6f" % (iteration, end - begin))
+    # Initially, no page is cached.
+    assert cache.get_pages() == []
 
-    for iteration in range(100):
-        random.seed(iteration)
-        for i in range(10000):
-            rand = random.randint(0, 100000000)
-            hash_table.delete(str(rand))
+    # Access "a.com".
+    cache.access_page("a.com", "AAA")
+    # "a.com" is cached.
+    assert cache.get_pages() == ["a.com"]
 
-    assert hash_table.size() == 0
-    print("Performance tests passed!")
+    # Access "b.com".
+    cache.access_page("b.com", "BBB")
+    # The cache is updated to:
+    #   (most recently accessed)<-- "b.com", "a.com" -->(least recently accessed)
+    assert cache.get_pages() == ["b.com", "a.com"]
+
+    # Access "c.com".
+    cache.access_page("c.com", "CCC")
+    # The cache is updated to:
+    #   (most recently accessed)<-- "c.com", "b.com", "a.com" -->(least recently accessed)
+    assert cache.get_pages() == ["c.com", "b.com", "a.com"]
+
+    # Access "d.com".
+    cache.access_page("d.com", "DDD")
+    # The cache is updated to:
+    #   (most recently accessed)<-- "d.com", "c.com", "b.com", "a.com" -->(least recently accessed)
+    assert cache.get_pages() == ["d.com", "c.com", "b.com", "a.com"]
+
+    # Access "d.com" again.
+    cache.access_page("d.com", "DDD")
+    # The cache is updated to:
+    #   (most recently accessed)<-- "d.com", "c.com", "b.com", "a.com" -->(least recently accessed)
+    assert cache.get_pages() == ["d.com", "c.com", "b.com", "a.com"]
+
+    # Access "a.com" again.
+    cache.access_page("a.com", "AAA")
+    # The cache is updated to:
+    #   (most recently accessed)<-- "a.com", "d.com", "c.com", "b.com" -->(least recently accessed)
+    assert cache.get_pages() == ["a.com", "d.com", "c.com", "b.com"]
+
+    cache.access_page("c.com", "CCC")
+    assert cache.get_pages() == ["c.com", "a.com", "d.com", "b.com"]
+    cache.access_page("a.com", "AAA")
+    assert cache.get_pages() == ["a.com", "c.com", "d.com", "b.com"]
+    cache.access_page("a.com", "AAA")
+    assert cache.get_pages() == ["a.com", "c.com", "d.com", "b.com"]
+
+    # Access "e.com".
+    cache.access_page("e.com", "EEE")
+    # The cache is full, so we need to remove the least recently accessed page "b.com".
+    # The cache is updated to:
+    #   (most recently accessed)<-- "e.com", "a.com", "c.com", "d.com" -->(least recently accessed)
+    assert cache.get_pages() == ["e.com", "a.com", "c.com", "d.com"]
+
+    # Access "f.com".
+    cache.access_page("f.com", "FFF")
+    # The cache is full, so we need to remove the least recently accessed page "c.com".
+    # The cache is updated to:
+    #   (most recently accessed)<-- "f.com", "e.com", "a.com", "c.com" -->(least recently accessed)
+    assert cache.get_pages() == ["f.com", "e.com", "a.com", "c.com"]
+
+    # Access "e.com".
+    cache.access_page("e.com", "EEE")
+    # The cache is updated to:
+    #   (most recently accessed)<-- "e.com", "f.com", "a.com", "c.com" -->(least recently accessed)
+    assert cache.get_pages() == ["e.com", "f.com", "a.com", "c.com"]
+
+    # Access "a.com".
+    cache.access_page("a.com", "AAA")
+    # The cache is updated to:
+    #   (most recently accessed)<-- "a.com", "e.com", "f.com", "c.com" -->(least recently accessed)
+    assert cache.get_pages() == ["a.com", "e.com", "f.com", "c.com"]
+
+    print("Tests passed!")
 
 
 # In[7]:
 
 
 if __name__ == "__main__":
-    functional_test()
-    performance_test()
+    cache_test()
+
+
+# In[ ]:
+
+
+
 

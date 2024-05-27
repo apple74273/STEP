@@ -304,12 +304,17 @@ def run_test():
     test("1+2")
     test("1.0+2.1-3")
     
-    #test case for inputting a single number
+    #test cases for inputting a single number
     test ("123.456789")
+    test ("-5.2")
     
-    # test case for addition
+    #test cases for addition
     test ("1.1+1.9")
     test ("1234.5+67.89")
+    
+    #test cases for using negative numbers
+    test ("1+-5")
+    test ("-2+4")
     
     #test cases for subtraction
     test ("1.5-1.0")
@@ -352,11 +357,14 @@ def run_test():
     test ("(4-2)/(4*4)")
     test ("(4/2)+(2-5)")
     
+    #test cases for the use of more pairs of parenthesis than necessary
+    test ("(((((-5+2)))))")
+    
     print()
     print("==== Test cases for homework 4")
     print()
     
-    #using each function only
+    #test cases for using each function only
     test ("abs(-1.4)")
     test ("abs(2.5)")
     test ("int(1.2345)")
@@ -364,12 +372,12 @@ def run_test():
     test ("round(1.4999999)")
     test ("round(1.5000000)")
     
-    #repeating each function
+    #test cases for repeating each function
     test ("abs(abs(3.4))")
     test ("int(int(2.3))")
     test ("round(round(1.5))")
     
-    #combining all three functions
+    #test cases for combining all three functions
     test ("abs(int(2.5))")
     test ("int(abs(-8.3))")
     test ("int(round(2.4))")
@@ -378,7 +386,7 @@ def run_test():
     test ("abs(round(24.2))")
     test ("int(round(abs(-12.49)))")
     
-    #combining all three functions with addition, subtraction, multiplication, and division
+    #test cases for combining all three functions with addition, subtraction, multiplication, and division
     test ("12*abs(int(round(-1.55)+abs(int(-2.3+4))))")
     test ("abs(round(2.49999+1.0)+int(abs(5*(3+5)*2))/abs(-5/2))")
     

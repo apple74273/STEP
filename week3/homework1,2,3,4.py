@@ -160,6 +160,7 @@ def tokenize(line):
 
 # identify a sequence closed by parenthesis and call the calculate function to calculate the value of the sequence
 # it also calls check_functions function to apply the function if there is any
+# it returns the value of the whole sequence
 # token list will be updated
 def evaluate(tokens):
     stack = Stack()
@@ -197,6 +198,7 @@ def evaluate(tokens):
 
 
 # check whether there is a function or not, and apply it if there is
+# it returns the updated value of the answer and the stack
 def check_functions(stack, answer):
     token = stack.peek()
     if token['type']=='FUNCTION':
@@ -235,7 +237,7 @@ def delete_tokens(tokens, length, index):
 # In[14]:
 
 
-# calculate a value of the given list of tokens
+# calculate a value of the given list of tokens and returns it
 def calculate(tokens):
     answer = 0
     tokens.insert(0, {'type': 'PLUS'}) # Insert a dummy '+' token

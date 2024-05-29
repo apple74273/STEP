@@ -4,7 +4,8 @@
 # In[1]:
 
 
-class MyStack:
+# class that implements stack (LIFO) structure
+class Stack:
     def __init__(self):
         self.stack = []
     def push(self, item):
@@ -157,10 +158,11 @@ def tokenize(line):
 # In[11]:
 
 
-# identify a sequence closed by parenthesis and call the calculate_next_sequence function to calculate the value of the sequence
+# identify a sequence closed by parenthesis and call the calculate function to calculate the value of the sequence
 # it also calls check_functions function to apply the function if there is any
+# token list will be updated
 def evaluate(tokens):
-    stack = MyStack()
+    stack = Stack()
     answer = 0
     index = 0
     
@@ -168,7 +170,18 @@ def evaluate(tokens):
     tokens.append({'type': 'CLOSE'}) #dumy token
     while index < len(tokens):
         if (tokens[index]['type']=='CLOSE'):
-            (answer, stack, tokens, index) = calculate_next_sequence(tokens, stack, index)
+            previous_token = stack.pop()
+            temp_tokens = []
+            length = 2
+            while (previous_token['type']!='OPEN'):
+                temp_tokens.append(previous_token)
+                previous_token = stack.pop()
+                length += 1
+            temp_tokens.reverse()
+            
+            (tokens, index) = delete_tokens(tokens, length, index)
+    
+            answer = calculate(temp_tokens)
             if stack.length()!=0:
                 (answer, stack) = check_functions(stack, answer)
                 
@@ -211,27 +224,6 @@ def check_functions(stack, answer):
 # In[13]:
 
 
-# create a list of tokens in between parenthesis, call a function to calculate its value, and update the list of tokens and stack
-def calculate_next_sequence(tokens, stack, index):
-    previous_token = stack.pop()
-    temp_tokens = []
-    length = 2
-    while (previous_token['type']!='OPEN'):
-        temp_tokens.append(previous_token)
-        previous_token = stack.pop()
-        length += 1
-    temp_tokens.reverse()
-            
-    (tokens, index) = delete_tokens(tokens, length, index)
-    
-    answer = calculate(temp_tokens)
-    
-    return answer, stack, tokens, index
-
-
-# In[14]:
-
-
 # delete a sequence of tokens for a given length and update a index correspondingly
 def delete_tokens(tokens, length, index):
     for i in range (length):
@@ -240,7 +232,7 @@ def delete_tokens(tokens, length, index):
     return tokens, index
 
 
-# In[15]:
+# In[14]:
 
 
 # calculate a value of the given list of tokens
@@ -277,7 +269,7 @@ def calculate(tokens):
     return answer
 
 
-# In[16]:
+# In[15]:
 
 
 # test whether the value got from this program is the same as the expected value
@@ -291,7 +283,7 @@ def test(line):
         print("FAIL! (%s should be %f but was %f)" % (line, expected_answer, actual_answer))
 
 
-# In[17]:
+# In[16]:
 
 
 # Add more tests to this function :)
@@ -394,7 +386,7 @@ def run_test():
     print("==== Test finished! ====\n")
 
 
-# In[18]:
+# In[17]:
 
 
 run_test()

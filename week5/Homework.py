@@ -127,8 +127,10 @@ def noCross(cities, tour, total_distance):
             for j in range(i+2, N-1):
                 if judgeCross(i, j, cities, tour):
                     #from IPython.core.debugger import Pdb; Pdb().set_trace()
-                    tour, total_distance = fixChain(cities, tour, total_distance, i, j)
-                    continue_flag = True
+                    tour, temp_distance = fixChain(cities, tour, total_distance, i, j)
+                    if temp_distance<total_distance:
+                        continue_flag = True
+                        total_distance = temp_distance
     
     return tour, total_distance
 
@@ -141,7 +143,6 @@ def fixChain(cities, tour, total_distance, start, end):
     new_tour = tour[:]
     new_total_distance = 0
     for i in range (end-start):
-        #from IPython.core.debugger import Pdb; Pdb().set_trace()
         new_tour[start+i+1]=tour[end-i]
         
     N = len(cities)
@@ -167,21 +168,22 @@ def annealing(cities, tour, total_distance, initial_distance, start_time, time_l
     if first==second:
         return tour, total_distance
     
-    new_tour, new_total_distance = swapRoute(cities, tour, total_distance, first, second)
+    new_tour, new_total_distance = swapRoute(cities, tour, total_distance, first, second) #TODO
     
     rand = random.random()
     probability = getProbability(start_time, time_limit, new_total_distance, total_distance, initial_distance)
     
-    #from IPython.core.debugger import Pdb; Pdb().set_trace()
-    #print(str(probability)+" , "+str(rand)+" , "+str(new_total_distance)+" , "+str(total_distance))
+    print(str(probability)+" , "+str(rand)+" , "+str(new_total_distance)+" , "+str(total_distance))
     
 #     Annealing1
-#     if probability>rand:
-
-#   Annealing2
-    if new_total_distance < total_distance:
+    if probability>rand:
         tour = new_tour
         total_distance = new_total_distance
+
+#   Annealing2
+#     if new_total_distance < total_distance:
+#         tour = new_tour
+#         total_distance = new_total_distance
     
     return tour, total_distance
 
@@ -202,7 +204,7 @@ def greedy(cities):
     unvisited_cities = set(range(1, N))
     tour = [current_city]
     total_distance = 0
-
+    
     while unvisited_cities:
         next_city = min(unvisited_cities,
                         key=lambda city: dist[current_city][city])
@@ -220,19 +222,61 @@ def greedy(cities):
 # In[11]:
 
 
-# method for creating an initial answer and calling functions to improve it
-def solve(cities):
-    tour, total_distance = greedy(cities)
-    tour, total_distance = noCross(cities, tour, total_distance)
-    start_time = time.time()
-    time_limit = 60
-    initial_distance = total_distance
-    while (time.time()-start_time<time_limit):
-        tour, total_distance = annealing(cities, tour, total_distance, initial_distance, start_time, time_limit)
-    return tour
+# do brute-force method if the number of cities is small
+def brute(cities, tour, total_distance):
+    if len(cities)<9:
+        now_place = 0
+        visited = [False] * len(cities)
+        visited[0]=True
+        count_visited = 1
+        now_distance = 0
+        now_tour = [0]
+        tour, total_distance = run_brute(cities, tour, now_tour, now_distance, now_place, visited, count_visited, total_distance)
+    
+    return tour, total_distance
+
+
+def run_brute (cities, tour, now_tour, now_distance, now_place, visited, count_visited, min_distance):
+    if count_visited == len(cities):
+        now_distance += distance(cities[now_place], cities[0])
+        now_tour.append(0)
+        if now_distance<min_distance:
+            tour = now_tour
+            min_distance = now_distance
+        return tour, min_distance
+        
+    for i in range (len(cities)):
+        if visited[i]:
+            continue
+            
+        visited[i]=True
+        next_tour = now_tour[:]
+        next_tour.append(i)
+        next_distance = now_distance + distance(cities[now_place], cities[i])
+        tour, min_distance = run_brute (cities, tour, next_tour, next_distance, i, visited, count_visited+1, min_distance)
+        visited[i]=False
+        
+    return tour, min_distance
 
 
 # In[12]:
+
+
+# method for creating an initial answer and calling functions to improve it
+def solve(cities):
+    tour, total_distance = greedy(cities)
+    start_time = time.time()
+    time_limit = 1
+    initial_distance = total_distance
+    while (time.time()-start_time<time_limit):
+        tour, total_distance = annealing(cities, tour, total_distance, initial_distance, start_time, time_limit)
+    tour, total_distance = noCross(cities, tour, total_distance)
+    tour, total_distance = brute(cities, tour, total_distance)
+    #from IPython.core.debugger import Pdb; Pdb().set_trace()
+    return tour
+
+
+# In[13]:
 
 
 # reading input from csv file
@@ -248,7 +292,7 @@ def readInput(count):
     return cities
 
 
-# In[13]:
+# In[14]:
 
 
 # writing the answer as a csv file
@@ -265,20 +309,20 @@ def writeOutput(tour, count):
             csvwriter.writerow([location])
 
 
-# In[14]:
+# In[15]:
 
 
 if __name__ == '__main__':
-    for i in range (7):
-        cities = readInput(i)
-        tour = solve(cities)
-        writeOutput(tour, i)
-        print("Finished "+str(i)+"th data!")
+#     for i in range (7):
+#         cities = readInput(i)
+#         tour = solve(cities)
+#         writeOutput(tour, i)
+#         print("Finished "+str(i)+"th data!")
 
 # When testing for one particular test case
-#     i = 6
-#     cities = readInput(i)
-#     tour = solve(cities)
-#     writeOutput(tour, i)
-#     print("Finished "+str(i)+"th data!")
+    i = 5
+    cities = readInput(i)
+    tour = solve(cities)
+    writeOutput(tour, i)
+    print("Finished "+str(i)+"th data!")
 

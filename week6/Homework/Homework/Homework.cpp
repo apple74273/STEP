@@ -6,6 +6,7 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#include <iomanip>
 using namespace std;
 
 class Solver {
@@ -23,6 +24,7 @@ class Solver {
                 solve();
                 writeOutput(i);
                 cout << "Finished " << i << "th data!" << endl;
+                cout << endl << "-----" << endl << endl;
             }*/
 
             // When testing for one particular test case
@@ -50,16 +52,42 @@ class Solver {
         void solve() {
 
             vector<int> initialTour = greedy();
-            vector<vector<int>> dividedTour;
+            //vector<int> initialTour = createInitialTour(); //FOR TESTING
+
+            if (initialTour.size() < 10) {
+                initialTour = bruteForce(initialTour);
+                answer = initialTour;
+            } else {
+                int clusterCount = 4;
+                initialTour = annealing(initialTour);
+                vector<vector<int>> dividedTour = divideTour(initialTour, clusterCount);
+
+                for (int i = 0; i < dividedTour.size(); i++) {
+                    dividedTour[i] = removeCross(dividedTour[i]); //TODO: cross-cluster
+                    cout << "Finished removing crosses!" << endl;
+                }
+
+                for (int i = 0; i < dividedTour.size(); i++) {
+                    for (int j = 0; j < dividedTour[i].size(); j++) {
+                        answer.push_back(dividedTour[i][j]);
+                    }
+                }
+            }
+            return;
+        }
+
+        // dividing the tour into smaller clusters
+        vector <vector<int>> divideTour(vector<int> initialTour, int clusterCount) {
+            vector <vector <int>> dividedTour;
             if (cities.size() > 8000) {
-                int length = initialTour.size() / 4;
+                int length = initialTour.size() / clusterCount;
                 length++;
                 int index = 0;
-                for (int i = 0; i < 4; i++) {
+                for (int i = 0; i < clusterCount; i++) {
                     vector<int> division;
                     for (int j = 0; j < length; j++) {
                         if (j == length - 1) {
-                            if (initialTour.size() % 4 <= i) {
+                            if (initialTour.size() % clusterCount <= i) {
                                 continue;
                             }
                         }
@@ -73,21 +101,7 @@ class Solver {
                 dividedTour.push_back(initialTour);
             }
 
-            for (int i = 0; i < dividedTour.size(); i++) {
-                dividedTour[i] = annealing(dividedTour[i]);
-                dividedTour[i] = removeCross(dividedTour[i]);
-                dividedTour[i] = bruteForce(dividedTour[i]);
-                if (dividedTour.size() != 1) {
-                    cout << "Finished processing " << i << "th data!" << endl;
-                }
-            }
-
-            for (int i = 0; i < dividedTour.size(); i++) {
-                for (int j = 0; j < dividedTour[i].size(); j++) {
-                    answer.push_back(dividedTour[i][j]);
-                }
-            }
-            return;
+            return dividedTour;
         }
 
         // writing the answer as a csv file
@@ -115,6 +129,35 @@ class Solver {
                 }
                 cities.push_back(city);
             }
+        }
+
+        // FOR TEST: creating a initial tour
+        vector <int> createInitialTour() {
+            int N = cities.size();
+            vector<vector<double>> dist(N, vector<double>(N, 0));
+            vector<int> tour;
+            for (int i = 0; i < N; i++) {
+                for (int j = i; j < N; j++) {
+                    dist[i][j] = dist[j][i] = distance(cities[i], cities[j]);
+                }
+            }
+
+            int currentCity = 0;
+            tour = { currentCity };
+            double distance = 0;
+
+            for (int i = 1; i < N; i++) {
+                int nextCity = i;
+                distance += dist[currentCity][nextCity];
+                tour.push_back(nextCity);
+                currentCity = nextCity;
+            }
+
+            distance += dist[currentCity][tour[0]];
+            tour.push_back(tour[0]);
+
+            cout << "Finished creating initial tour!" << endl;
+            return tour;
         }
 
         // creating an initial answer based on greedy technique
@@ -162,7 +205,7 @@ class Solver {
         }
 
         // simulated annealing
-        vector<int> runAnnealing(double startTime, double timeLimit, vector<int> tour) {
+        vector<int> runAnnealing(double startTime, double timeLimit, vector<int> tour, int count) {
             random_device rd;
             mt19937 gen(rd());
             uniform_int_distribution<> dis(1, tour.size() - 2);
@@ -180,12 +223,19 @@ class Solver {
 
             double randProb = static_cast<double>(rand()) / RAND_MAX;
             double probability = getProbability(startTime, timeLimit, newDistance);
+
+            // FOR DEBUG:
+            if (count % 50 == 0) {
+                cout << probability << ", " << newDistance << ", " << minDistance << endl << setprecision(10);
+            }
+            
+            //TODO: look up probability curve
             // Annealing1
             //本当はこっちにしたかったけど上手くいかなかった
-            //if (probability > randProb) {
-                //tour = newTour;
-                //minDistance = newDistance;
-            //}
+            /*if (probability > randProb) {
+                tour = newTour;
+                minDistance = newDistance;
+            }*/
 
             //Annealing2
             if (newDistance < minDistance) {
@@ -198,11 +248,12 @@ class Solver {
 
         vector<int> annealing(vector<int> tour) {
             double startTime = static_cast<double>(clock()) / CLOCKS_PER_SEC;
-            double timeLimit = 2;
+            double timeLimit = 600;
             initialDistance = minDistance;
-
+            int count = 0;
             while ((static_cast<double>(clock()) / CLOCKS_PER_SEC - startTime) < timeLimit) {
-                tour = runAnnealing(startTime, timeLimit, tour);
+                tour = runAnnealing(startTime, timeLimit, tour, count);
+                count += 1;
             }
 
             cout << "Finished simulated annealing!" << endl;
@@ -239,10 +290,12 @@ class Solver {
             if (newDistance < minDistance) {
                 return 1.0;
             }
-            double startTemp = initialDistance * 0.025;
-            double endTemp = initialDistance * 0.0075;
+            double startTemp = initialDistance * 0.000015;
+            double endTemp = initialDistance * 0.0000001;
             double temp = startTemp + (endTemp - startTemp) * ((double)clock() / CLOCKS_PER_SEC / (startTime + timeLimit));
-            double probability = exp((minDistance - newDistance) / temp);
+            double probability = exp((minDistance - newDistance) / temp); //TODO: change function
+            //FOR DEBUG:
+            //cout << temp << ", " << probability << ", " << (minDistance - newDistance) << ", " << (minDistance-newDistance)/temp << endl;
             return probability;
         }
 
@@ -266,8 +319,6 @@ class Solver {
                     }
                 }
             }
-
-            cout << "Finished removing crosses!" << endl;
 
             return tour;
         }
@@ -330,27 +381,24 @@ class Solver {
 
         // do brute-force method if the number of cities is small
         vector<int> bruteForce(vector<int> tour) {
-            if (tour.size() < 9) {
-                vector<bool> visited(tour.size(), false);
-                visited[0] = true;
-                int countVisited = 1;
-                double nowDistance = 0;
-                vector<int> nowTour = { 0 };
-                tour = runBruteForce(nowTour, nowDistance, 0, visited, countVisited, tour);
-                return tour;
-            }
+            vector<bool> visited(tour.size(), false);
+            visited[0] = true;
+            int countVisited = 1;
+            double nowDistance = 0;
+            vector<int> nowTour = { 0 };
+            tour = runBruteForce(nowTour, nowDistance, 0, visited, countVisited, tour);
+            cout << "Finished brute force!" << endl;
             return tour;
         }
 
         vector<int> runBruteForce(vector<int> nowTour, double nowDistance, int nowPlace, vector<bool> visited, int countVisited, vector<int> tour) {
-            if (countVisited == tour.size()) {
+            if (countVisited == tour.size()-1) {
                 nowDistance += distance(cities[nowPlace], cities[0]);
                 nowTour.push_back(0);
                 if (nowDistance < minDistance) {
                     tour = nowTour;
                     minDistance = nowDistance;
                 }
-                cout << "Finished brute force!" << endl;
                 return tour;
             }
 
@@ -359,7 +407,7 @@ class Solver {
             vector<bool> newVisited(visited.size());
             copy(visited.begin(), visited.end(), newVisited.begin());
 
-            for (int i = 0; i < tour.size(); ++i) {
+            for (int i = 0; i < tour.size()-1; ++i) {
                 if (visited[i]) continue;
 
                 newVisited[i] = true;

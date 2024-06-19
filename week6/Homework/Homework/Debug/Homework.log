@@ -1,7 +1,7 @@
 ﻿  Homework.cpp
-C:\Users\na742\STEP\STEP\week5\Homework\Homework\Homework.cpp(62,56): warning C4018: '<=': signed と unsigned の数値を比較しようとしました。
-C:\Users\na742\STEP\STEP\week5\Homework\Homework\Homework.cpp(76,31): warning C4018: '<': signed と unsigned の数値を比較しようとしました。
-C:\Users\na742\STEP\STEP\week5\Homework\Homework\Homework.cpp(85,31): warning C4018: '<': signed と unsigned の数値を比較しようとしました。
-C:\Users\na742\STEP\STEP\week5\Homework\Homework\Homework.cpp(86,35): warning C4018: '<': signed と unsigned の数値を比較しようとしました。
-C:\Users\na742\STEP\STEP\week5\Homework\Homework\Homework.cpp(362,31): warning C4018: '<': signed と unsigned の数値を比較しようとしました。
-  Homework.vcxproj -> C:\Users\na742\STEP\STEP\week5\Homework\Debug\Homework.exe
+C:\Users\na742\STEP\STEP\week6\Homework\Homework\Homework.cpp(65,35): warning C4018: '<': signed と unsigned の数値を比較しようとしました。
+C:\Users\na742\STEP\STEP\week6\Homework\Homework\Homework.cpp(70,35): warning C4018: '<': signed と unsigned の数値を比較しようとしました。
+C:\Users\na742\STEP\STEP\week6\Homework\Homework\Homework.cpp(71,39): warning C4018: '<': signed と unsigned の数値を比較しようとしました。
+C:\Users\na742\STEP\STEP\week6\Homework\Homework\Homework.cpp(90,67): warning C4018: '<=': signed と unsigned の数値を比較しようとしました。
+C:\Users\na742\STEP\STEP\week6\Homework\Homework\Homework.cpp(410,31): warning C4018: '<': signed と unsigned の数値を比較しようとしました。
+  Homework.vcxproj -> C:\Users\na742\STEP\STEP\week6\Homework\Debug\Homework.exe

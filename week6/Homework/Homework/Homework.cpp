@@ -29,7 +29,7 @@ class Solver {
 
             // When testing for one particular test case
             
-            int i = 7;
+            int i = 6;
             initialize();
             readInput(i);
             solve();
@@ -63,7 +63,11 @@ class Solver {
                 vector<vector<int>> dividedTour = divideTour(initialTour, clusterCount);
 
                 for (int i = 0; i < dividedTour.size(); i++) {
-                    dividedTour[i] = removeCross(dividedTour[i]); //TODO: cross-cluster
+                    double timeLimit = 60;
+                    double startTime = static_cast<double>(clock()) / CLOCKS_PER_SEC;
+                    while ((static_cast<double>(clock()) / CLOCKS_PER_SEC - startTime) < timeLimit) {
+                        dividedTour[i] = removeCross(dividedTour[i]); //TODO: cross-cluster
+                    }
                     cout << "Finished removing crosses!" << endl;
                 }
 
@@ -225,9 +229,9 @@ class Solver {
             double probability = getProbability(startTime, timeLimit, newDistance);
 
             // FOR DEBUG:
-            if (count % 50 == 0) {
+            /*if (count % 50 == 0) {
                 cout << probability << ", " << newDistance << ", " << minDistance << endl << setprecision(10);
-            }
+            }*/
             
             //TODO: look up probability curve
             // Annealing1
@@ -301,20 +305,15 @@ class Solver {
 
         // when the two lines intersect each other, reorganize the points so that there is no intersections
         vector<int> removeCross(vector<int> tour) {
-            bool continueFlag = true;
-            while (continueFlag) {
-                continueFlag = false;
-                int N = tour.size();
-                for (int i = 1; i < N - 2; ++i) {
-                    for (int j = i + 2; j < N - 1; ++j) {
-                        if (judgeCross(i, j, tour)) {
-                            pair<vector<int>, double> result = fixChain(i, j, tour);
-                            tour = result.first;
-                            double tempDistance = result.second;
-                            if (tempDistance < minDistance) {
-                                continueFlag = true;
-                                minDistance = tempDistance;
-                            }
+            int N = tour.size();
+            for (int i = 1; i < N - 2; ++i) {
+                for (int j = i + 2; j < N - 1; ++j) {
+                    if (judgeCross(i, j, tour)) {
+                        pair<vector<int>, double> result = fixChain(i, j, tour);
+                        tour = result.first;
+                        double tempDistance = result.second;
+                        if (tempDistance < minDistance) {
+                            minDistance = tempDistance;
                         }
                     }
                 }

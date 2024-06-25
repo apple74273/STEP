@@ -108,6 +108,7 @@ void *my_malloc(size_t size) {
   //‚»‚Ìindex‚ğ’T‚µ‚ÄŒ©‚Â‚©‚ç‚È‚¢¨‚à‚¤1ƒTƒCƒY‘å‚«‚¢bin‚ğ’T‚µ‚½‚çŒ©‚Â‚©‚é‚©‚à
   while (index < 4) {
       metadata = my_heap[index].free_head;
+      prev = NULL;
       while (metadata) {
           size_t difference = metadata->size - size;
           if (difference >= 0) {
@@ -205,15 +206,10 @@ void my_finalize() {
 void test() {
   // Implement here!
   assert(1 == 1); /* 1 is 1. That's always true! (You can remove this.) */
-  /*my_malloc(128);
-  my_malloc(128);
-  my_malloc(128);
-  my_malloc(128);
-  my_malloc(128);
-  my_malloc(128);
+  //my_malloc(100);
   my_malloc(128);
   my_malloc(4096);
   my_malloc(1024);
   my_malloc(2048);
-  printf("Succeed\n")*/
+  printf("Succeed\n")
 }

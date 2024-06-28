@@ -224,12 +224,12 @@ void my_finalize() {
     
 
     //FOR DEBUG
-    my_metadata_t* metadata = my_heap.free_head;
+    //my_metadata_t* metadata = my_heap.free_head;
     
-    while (metadata) {
-        printf("%zu, ", metadata->size);
-        metadata = metadata->next;
-    }
+    //while (metadata) {
+        //printf("%zu, ", metadata->size);
+        //metadata = metadata->next;
+    //}
 
 }
 

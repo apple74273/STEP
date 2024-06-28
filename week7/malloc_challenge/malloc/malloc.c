@@ -221,11 +221,11 @@ void my_finalize() {
     // Nothing is here for now.
     // feel free to add something if you want!
 
-    
+
 
     //FOR DEBUG
     my_metadata_t* metadata = my_heap.free_head;
-    
+
     while (metadata) {
         printf("%zu, ", metadata->size);
         metadata = metadata->next;

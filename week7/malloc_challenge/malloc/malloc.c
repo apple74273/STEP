@@ -53,7 +53,7 @@ void my_remove_from_free_list(my_metadata_t* metadata, my_metadata_t* prev) {
     }
     metadata->next = NULL;
 }
-void my_add_to_free_list(my_metadata_t* metadata, bool merge_flag) {
+void my_add_to_free_list(my_metadata_t* metadata) {
     my_metadata_t* current = my_heap.free_head;
     my_metadata_t* prev = NULL;
 
@@ -71,8 +71,6 @@ void my_add_to_free_list(my_metadata_t* metadata, bool merge_flag) {
         my_heap.free_head = metadata;
     }
 
-    my_metadata_t* target = metadata;
-
     // Merge with the next block if possible
     if (metadata->next != NULL && (char*)metadata + sizeof(my_metadata_t) + metadata->size == (char*)metadata->next) {
         metadata->size += sizeof(my_metadata_t) + metadata->next->size;
@@ -82,16 +80,25 @@ void my_add_to_free_list(my_metadata_t* metadata, bool merge_flag) {
     if (prev != NULL && (char*)prev + sizeof(my_metadata_t) + prev->size == (char*)metadata) {
         // Merge with the previous block
         prev->size += sizeof(my_metadata_t) + metadata->size;
-        target = prev;
         my_remove_from_free_list(metadata, prev);
     }
+}
 
-    if (merge_flag) {
-        void* ptr = target;
+void merge_free_list() {
+    my_metadata_t* metadata = my_heap.free_head;
+    my_metadata_t* prev = NULL;
+
+    while (metadata) {
+        void* ptr = metadata;
         size_t total = metadata->size + sizeof(my_metadata_t);
-        if (total==4096) {
+        if (total == 4096) {
             my_remove_from_free_list(metadata, prev);
             munmap_to_system(ptr, 4096);
+            metadata = prev->next;
+        }
+        else {
+            prev = metadata;
+            metadata = metadata->next;
         }
 
     }
@@ -156,7 +163,7 @@ void* my_malloc(size_t size) {
         metadata->size = buffer_size - sizeof(my_metadata_t);
         metadata->next = NULL;
         // Add the memory region to the free list.
-        my_add_to_free_list(metadata, false);
+        my_add_to_free_list(metadata);
         // Now, try my_malloc() again. This should succeed.
         return my_malloc(size);
     }
@@ -189,7 +196,8 @@ void* my_malloc(size_t size) {
         new_metadata->size = remaining_size - sizeof(my_metadata_t);
         new_metadata->next = NULL;
         // Add the remaining free slot to the free list.
-        my_add_to_free_list(new_metadata, true);
+        my_add_to_free_list(new_metadata);
+        merge_free_list();
     }
     return ptr;
 }
@@ -204,7 +212,8 @@ void my_free(void* ptr) {
     //     metadata   ptr
     my_metadata_t* metadata = (my_metadata_t*)ptr - 1;
     // Add the free slot to the free list.
-    my_add_to_free_list(metadata, true);
+    my_add_to_free_list(metadata);
+    merge_free_list();
 }
 
 // This is called at the end of each challenge.
